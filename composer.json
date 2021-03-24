@@ -1,0 +1,12 @@
+{   "name" : "social/api",
+    "description": "This is the API for Social Netowrk GenZ",
+    "require": {
+        "vlucas/phpdotenv": "^5.2",
+        "firebase/php-jwt": "^5.2"
+      },
+      "autoload": {
+        "psr-4": {
+          "Src\\": "src/"
+        }
+    }
+}
