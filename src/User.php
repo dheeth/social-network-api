@@ -91,6 +91,13 @@ class User {
     if (! $this->validateUser($input)) {
       return $this->unprocessableEntityResponse();
     }
+    $check = 'SELECT email from users where email = :email';
+    $run = $this->db->prepare($check);
+    $run->execute(array('email'=>$input['email']));
+    $num=$run->rowCount();
+    if($num<=0){
+
+    
 
     $query = 'INSERT INTO users
         SET
@@ -112,11 +119,17 @@ class User {
       exit($e->getMessage());
     }
 
+
     $response['status_code_header'] = 'HTTP/1.1 201 Created';
     $response['body'] = json_encode(array('message' => 'User Created'));
     return $response;
+  }else{
+    $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
+    $response['body'] = json_encode(array('message' => 'email already exist'));
+    return $response;
   }
-
+}
+  
   private function updateUser($id)
   {
     $result = $this->find($id);
@@ -228,8 +241,10 @@ class User {
       }
     }
     else {
-      return $this->notFoundResponse();
-    }
+      $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
+      $response['body'] = json_encode(array('message' => "User doesn't exist,Please Signup"));
+      return $response;
+     }
 
   }
 
