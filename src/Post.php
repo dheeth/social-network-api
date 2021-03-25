@@ -5,6 +5,7 @@ class Post {
   private $db;
   private $requestMethod;
   private $postId;
+  private $upload_dir = 'uploads/';
 
   public function __construct($db, $requestMethod, $postId)
   {
@@ -74,11 +75,56 @@ class Post {
 
   private function createPost()
   {
-    $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+    
+    // $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+    $input = $_REQUEST;
     if (! $this->validatePost($input)) {
       return $this->unprocessableEntityResponse();
     }
+    if (isset($_FILES['post_url'])) {
+      $image_name = $_FILES["post_url"]["name"];
+      $image_tmp_name = $_FILES["post_url"]["tmp_name"];
+      $error = $_FILES["post_url"]["error"];
 
+      if($error > 0){
+        return $this->unprocessableEntityResponse();
+      }
+      else {
+        $random_name = rand(1000,1000000)."-".$image_name;
+        $upload_name = $this->upload_dir.strtolower($random_name);
+        $upload_name = preg_replace('/\s+/', '-', $upload_name);
+    
+        if(move_uploaded_file($image_tmp_name, $upload_name)) {
+          $query = 'INSERT INTO posts
+          SET
+            caption = :caption,
+            type = :type,
+            user_id = :user_id,
+            post_url = :post_url';
+
+          try {
+            $statement = $this->db->prepare($query);
+            $statement->execute(array(
+              'caption' => $input['caption'],
+              'type'  => $input['type'],
+              'user_id' => $input['user_id'],
+              'post_url' => $upload_name
+            ));
+            $statement->rowCount();
+          } catch (\PDOException $e) {
+            exit($e->getMessage());
+          }
+
+          $response['status_code_header'] = 'HTTP/1.1 201 Created';
+          $response['body'] = json_encode(array('message' => 'Post Created With File'));
+          return $response;
+        }
+        else {
+          return $this->unprocessableEntityResponse();
+        }
+      }
+    }
+    else {
     $query = 'INSERT INTO posts
         SET
           caption = :caption,
@@ -100,6 +146,7 @@ class Post {
     $response['status_code_header'] = 'HTTP/1.1 201 Created';
     $response['body'] = json_encode(array('message' => 'Post Created'));
     return $response;
+  }
   }
 
   private function updatePost($id)

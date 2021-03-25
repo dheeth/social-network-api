@@ -214,10 +214,10 @@ class User {
         $jwt = JWT::encode($token, $secret_key);
         $response['body'] = json_encode(array(
           'message' => 'Login Successful',
-          'jwt' => $jwt,
-          'email' => $email,
-          'username' => $username,
-          'expiry' => $expire_claim
+          'jwt' => $jwt
+          // 'email' => $email,
+          // 'username' => $username,
+          // 'expiry' => $expire_claim
         ));
         return $response;
       }
