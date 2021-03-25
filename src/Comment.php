@@ -54,7 +54,7 @@ class Comment  {
   }
   private function getComments($id)
   {
-    $result = $this->find($id);
+    $result = $this->findforpost($id);
     if (! $result) {
         return $this->notFoundResponse();
     }
@@ -147,6 +147,20 @@ class Comment  {
   public function find($id)
   {
     $query =  'SELECT u.username as username, c.comment_id, c.user_id, c.post_id, c.date_created, c.comment, p.caption as caption FROM 
+    comments c LEFT JOIN users u ON c.user_id = u.user_id LEFT JOIN posts p on c.post_id = p.post_id WHERE c.comment_id = :id ORDER BY c.date_created DESC';
+    try {
+      $statement = $this->db->prepare($query);
+      $statement->execute(array('id' => $id));
+      $result = $statement->fetch(\PDO::FETCH_ASSOC);
+      return $result;
+    } catch (\PDOException $e) {
+      exit($e->getMessage());
+    }
+  }
+
+  public function findforpost($id)
+  {
+    $query =  'SELECT u.username as username, c.comment_id, c.user_id, c.post_id, c.date_created, c.comment, p.caption as caption FROM 
     comments c LEFT JOIN users u ON c.user_id = u.user_id LEFT JOIN posts p on c.post_id = p.post_id WHERE p.post_id = :id ORDER BY c.date_created DESC';
     try {
       $statement = $this->db->prepare($query);
@@ -157,7 +171,6 @@ class Comment  {
       exit($e->getMessage());
     }
   }
-
  
 
   private function validatePost($input)

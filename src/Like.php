@@ -106,7 +106,9 @@ class Like {
   public function find($id)
   {
     $query = "
-    SELECT u.username as username, l.like_id, l.user_id, l.post_id, l.date_created, p.caption as caption FROM likes l LEFT JOIN users u ON l.user_id = u.user_id LEFT JOIN posts p on l.post_id = p.post_id WHERE l.like_id = :id";
+    SELECT u.username as username, l.like_id, l.user_id, l.post_id, l.date_created, p.caption as
+     caption FROM likes l LEFT JOIN users u ON l.user_id = u.user_id
+      LEFT JOIN posts p on l.post_id = p.post_id WHERE l.like_id = :id";
     try {
       $statement = $this->db->prepare($query);
       $statement->execute(array('id' => $id));
