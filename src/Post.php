@@ -6,12 +6,14 @@ class Post {
   private $requestMethod;
   private $postId;
   private $upload_dir = 'uploads/';
+  private $userId;
 
-  public function __construct($db, $requestMethod, $postId)
+  public function __construct($db, $requestMethod, $postId, $userId)
   {
     $this->db = $db;
     $this->requestMethod = $requestMethod;
     $this->postId = $postId;
+    $this->userId = $userId;
   }
 
   public function processRequest()
@@ -248,6 +250,45 @@ class Post {
   {
     $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
     $response['body'] = null;
+    return $response;
+  }
+
+  public function processPostRequest()
+  {
+    switch ($this->requestMethod) {
+      case 'GET':
+        if ($this->userId) {
+          $response = $this->getPostsByUser($this->userId);
+        } else {
+          $response = $this->notFoundResponse();
+        };
+        break;
+      default:
+        $response = $this->notFoundResponse();
+        break;
+    }
+    header($response['status_code_header']);
+    if ($response['body']) {
+        echo $response['body'];
+    }
+  }
+  private function getPostsByUser($id)
+  {
+     $query = 'SELECT u.username as username, p.post_id, p.user_id, p.caption,p.type, p.post_url, p.date_created,
+     (select count(*) from likes as l where l.post_id = p.post_id) as likes, 
+     (select count(*) from comments as c where c.post_id = p.post_id) as comments 
+     FROM posts p LEFT JOIN users u ON p.user_id = u.user_id WHERE p.user_id = :id ORDER BY p.date_created DESC';
+
+    try {
+      $statement = $this->db->prepare($query);
+      $statement->execute(array('id' => $id));
+      $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+    } catch (\PDOException $e) {
+      exit($e->getMessage());
+    }
+
+    $response['status_code_header'] = 'HTTP/1.1 200 OK';
+    $response['body'] = json_encode($result);
     return $response;
   }
 }

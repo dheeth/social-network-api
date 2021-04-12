@@ -38,12 +38,23 @@ $requestMethod = $_SERVER["REQUEST_METHOD"];
 // all of our endpoints start with /post or /posts
 if ($uri[1] == 'posts') {
     $postId = null;
+    $userId = null;
     if (isset($uri[2])) {
         $postId = (int) $uri[2];
     }
     // pass the request method and post ID to the Post and process the HTTP request:
-    $controller = new Post($dbConnection, $requestMethod, $postId);
+    $controller = new Post($dbConnection, $requestMethod, $postId, $userId);
     $controller->processRequest();
+}
+elseif ($uri[1] == 'profile') {
+    $userId = null;
+    $postId = null;
+    if (isset($uri[2])) {
+        $userId = (int) $uri[2];
+    }
+    // pass the request method and post ID to the Post and process the HTTP request:
+    $userController = new Post($dbConnection, $requestMethod, $postId, $userId);
+    $userController->processPostRequest();
 }
 // all of our endpoints start with /user or /users
 elseif ($uri[1] == 'users') {
