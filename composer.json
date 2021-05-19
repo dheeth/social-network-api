@@ -8,7 +8,7 @@
         "psr-4": {
           "Src\\": "src/"
         }
-    }
+    },
     "scripts": {
     "post-install-cmd": [
       "php -t api"
